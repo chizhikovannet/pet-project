@@ -12,7 +12,7 @@ flowchart TD
     Search --> ViewCard[Просмотр карточки анкеты]
     ViewCard --> Found{Подходит анкета?}
 
-    Found -- Нет: Пролистать --> Search
+    Found -- Нет --> Search
     Found -- Да: Сохранить --> SaveFav[Добавление в Избранное]
     SaveFav --> Search
     Found -- Да: Связаться --> Chat[Переписка в личных чатах]
