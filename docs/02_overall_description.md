@@ -115,7 +115,7 @@ PostgreSQL / SQLite)]
 end
 
 subgraph ExternalServices ["Внешние сервисы"]
-    S3[("☁️ S3 Object Storage
+    S3[("S3 Object Storage
 
 (Хранение аватарок и фото)")]
 end
