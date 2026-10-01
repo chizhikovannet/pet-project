@@ -9,11 +9,14 @@ flowchart TD
     Login --> CreateProfile[Заполнение анкеты]
     CreateProfile --> Search[Поиск и фильтрация анкет]
 
-    Search --> Found{Подходит анкета?}
-    Found -- Нет --> SaveFav[Добавление в Избранное]
-    SaveFav --> Search
+    Search --> ViewCard[Просмотр карточки анкеты]
+    ViewCard --> Found{Подходит анкета?}
 
-    Found -- Да --> Chat[Переписка в личных чатах]
+    Found -- Нет: Пролистать --> Search
+    Found -- Да: Сохранить --> SaveFav[Добавление в Избранное]
+    SaveFav --> Search
+    Found -- Да: Связаться --> Chat[Переписка в личных чатах]
+
     Chat --> Agree{Договорились?}
 
     Agree -- Нет --> Search
