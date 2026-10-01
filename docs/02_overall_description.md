@@ -80,6 +80,58 @@ graph LR
 
 Интерактивная документация Swagger UI для проверки и отладки API.
 
+```mermaid
+graph TB
+    subgraph Users ["Пользователи системы"]
+        Student["🎓 Студент
+
+(Ищет сожителя)"]
+Admin["🛡️ Модератор
+
+
+(Управляет контентом)"]
+end
+
+subgraph Clients ["Клиентский слой (Frontend)"]
+    WebApp["🌐 Web Application
+
+(React / Vue SPA)"]
+MobileApp["📱 Mobile Application
+
+
+(Flutter / React Native)"]
+end
+
+subgraph BackendSystem ["Серверный слой (Backend)"]
+    API["⚡ FastAPI Backend Service
+
+(REST API, Auth, Business Logic)"]
+end
+
+subgraph DataStorage ["Слой хранения данных"]
+    DB[(🗄️ Реляционная БД
+
+PostgreSQL / SQLite)]
+end
+
+subgraph ExternalServices ["Внешние сервисы"]
+    S3[("☁️ S3 Object Storage
+
+(Хранение аватарок и фото)")]
+end
+
+%% Взаимодействия
+Student -->|HTTP / HTTPS| WebApp
+Student -->|HTTP / HTTPS| MobileApp
+Admin -->|HTTP / HTTPS| WebApp
+
+WebApp -->|REST API / JSON| API
+MobileApp -->|REST API / JSON| API
+
+API -->|SQLAlchemy ORM| DB
+API -->|Boto3 / S3 API| S3
+```
+
 2.4 Ограничения дизайна и реализации
 
 Технические ограничения:
