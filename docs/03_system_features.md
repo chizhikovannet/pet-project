@@ -70,6 +70,29 @@ FR-18: Пользователь не может ставить оценку са
 
 FR-19: Защита от спама оценок (ограничение на повторное оставление отзыва одному и тому же пользователю).
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor StudentA as Студент A
+    participant Client as Frontend / API Client
+    participant API as FastAPI Backend
+    participant DB as База Данных
+
+    StudentA->>Client: Нажимает "Оставить отзыв"
+    Client->>API: POST /api/ratings/{target_user_id}
+    API->>API: Валидация JWT и проверка (StudentA != target_user_id)
+    
+    alt Попытка оценить самого себя
+        API-->>Client: 400 Bad Request ("Нельзя оценить себя")
+    else Валидация успешна
+        API->>DB: INSERT INTO ratings
+        DB-->>API: Подтверждение
+        API->>DB: SELECT AVG(score) FROM ratings
+        DB-->>API: Среднее значение
+        API-->>Client: 201 Created (Обновленный профиль)
+    end
+```
+
 3.5 Модуль «Избранное»
 
 3.5.1 Описание
