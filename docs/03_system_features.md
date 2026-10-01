@@ -18,6 +18,43 @@ FR-4: Система должна проверять наличие и вали�
 
 FR-5: Система должна поддерживать валидацию логина на уникальность и проверять сложность пароля (не менее 8 символов).
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Пользователь
+    participant Client as Frontend / API Client
+    participant API as FastAPI Backend
+    participant DB as База Данных
+
+    alt Регистрация (FR-1, FR-2, FR-5)
+        User->>Client: Ввод логина и пароля
+        Client->>API: POST /api/auth/register
+        API->>DB: SELECT * FROM users WHERE login = X
+        alt Логин уже занят
+            DB-->>API: Запись найдена
+            API-->>Client: 400 Bad Request ("Логин занят")
+        else Логин свободен
+            DB-->>API: Запись не найдена
+            API->>API: Хэширование пароля (bcrypt)
+            API->>DB: INSERT INTO users (login, hashed_password)
+            DB-->>API: Подтверждение
+            API-->>Client: 201 Created ("Пользователь зарегистрирован")
+        end
+    else Вход в систему (FR-3, FR-4)
+        User->>Client: Ввод логина и пароля
+        Client->>API: POST /api/auth/login
+        API->>DB: SELECT * FROM users WHERE login = X
+        DB-->>API: Данные пользователя
+        API->>API: Проверка пароля (bcrypt verify)
+        alt Неверные данные
+            API-->>Client: 401 Unauthorized ("Неверный логин или пароль")
+        else Успешная аутентификация
+            API->>API: Генерация JWT (access_token)
+            API-->>Client: 200 OK {access_token, token_type: "bearer"}
+        end
+    end
+```
+
 3.2 Модуль управления анкетами пользователей
 
 3.2.1 Описание
@@ -36,6 +73,36 @@ FR-9: Пользователь должен иметь возможность м
 
 FR-10: Пользователь должен иметь возможность восстановить анкету из архива.
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Student as Студент
+    participant Client as Frontend / API Client
+    participant API as FastAPI Backend
+    participant DB as База Данных
+
+    Student->>Client: Заполнение / Изменение анкеты
+    Client->>API: POST/PUT /api/profiles/me (с JWT токеном)
+    API->>API: Валидация JWT и данных Pydantic
+    API->>DB: SELECT * FROM profiles WHERE user_id = current_user.id
+    
+    alt Создание анкеты (POST)
+        alt Анкета уже существует (FR-6)
+            DB-->>API: Запись найдена
+            API-->>Client: 400 Bad Request ("Анкета уже создана")
+        else Анкеты нет
+            DB-->>API: Запись не найдена
+            API->>DB: INSERT INTO profiles (user_id, full_name, budget, ...)
+            DB-->>API: Данные сохранены
+            API-->>Client: 201 Created (Объект профиля)
+        end
+    else Архивация / Восстановление (DELETE/POST) (FR-9, FR-10)
+        API->>DB: UPDATE profiles SET status = 'archived' / 'active'
+        DB-->>API: Успешно обновлено
+        API-->>Client: 200 OK (Обновленный статус)
+    end
+```
+
 3.3 Модуль поиска и фильтрации анкет
 
 3.3.1 Описание
@@ -51,6 +118,23 @@ FR-12: Поиск должен поддерживать фильтрацию п�
 FR-13: Система должна исключать из результатов поиска собственную анкету текущего пользователя и заблокированные аккаунты.
 
 FR-14: Поддержка сортировки результатов (по дате создания, величине бюджета, среднему рейтингу).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Student as Студент
+    participant Client as Frontend / API Client
+    participant API as FastAPI Backend
+    participant DB as База Данных
+
+    Student->>Client: Задает фильтры (город, бюджет, ВУЗ)
+    Client->>API: GET /api/search?city=Msk&budget_max=30000 (с JWT)
+    API->>API: Извлечение user_id из JWT
+    API->>DB: SELECT * FROM profiles WHERE status = 'active' AND user_id != current_user.id AND city = 'Msk' AND budget <= 30000 ORDER BY created_at DESC
+    DB-->>API: Список отфильтрованных записей
+    API-->>Client: 200 OK [Массив анкет со средним рейтингом]
+    Client-->>Student: Отображение карточек сожителей
+```
 
 3.4 Модуль рейтинга и отзывов
 
@@ -107,6 +191,35 @@ FR-21: Пользователь должен иметь возможность �
 
 FR-22: Пользователь должен иметь возможность удалять анкеты из «Избранного».
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Student as Студент
+    participant Client as Frontend / API Client
+    participant API as FastAPI Backend
+    participant DB as База Данных
+
+    alt Добавление в избранное (FR-20)
+        Student->>Client: Нажимает "Добавить в избранное"
+        Client->>API: POST /api/favorites/{profile_id} (с JWT)
+        API->>DB: INSERT INTO favorites (user_id, target_profile_id)
+        DB-->>API: Запись создана
+        API-->>Client: 201 Created ("Добавлено")
+    else Просмотр избранного (FR-21)
+        Student->>Client: Переходит в раздел "Избранное"
+        Client->>API: GET /api/favorites (с JWT)
+        API->>DB: SELECT profiles.* FROM favorites JOIN profiles ON ... WHERE favorites.user_id = X
+        DB-->>API: Список сохраненных анкет
+        API-->>Client: 200 OK [Массив анкет]
+    else Удаление из избранного (FR-22)
+        Student->>Client: Нажимает "Удалить"
+        Client->>API: DELETE /api/favorites/{profile_id} (с JWT)
+        API->>DB: DELETE FROM favorites WHERE user_id = X AND target_profile_id = Y
+        DB-->>API: Запись удалена
+        API-->>Client: 200 OK ("Удалено")
+    end
+```
+
 3.6 Модуль сообщений и диалогов (Чаты)
 
 3.6.1 Описание
@@ -122,3 +235,32 @@ FR-24: Пользователь должен иметь возможность �
 FR-25: Пользователь должен иметь возможность просматривать историю сообщений в выбранном диалоге.
 
 FR-26: Доступ к переписке должны иметь только ее участники (защита на уровне авторизации API).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor StudentA as Студент A
+    participant Client as Frontend / API Client
+    participant API as FastAPI Backend
+    participant DB as База Данных
+
+    StudentA->>Client: Открывает чат с Студентом B
+    Client->>API: GET /api/messages/chats/{chat_id}/messages (с JWT)
+    API->>DB: SELECT * FROM chat_participants WHERE chat_id = X AND user_id = StudentA.id
+    
+    alt Не участник чата (FR-26)
+        DB-->>API: Запись не найдена
+        API-->>Client: 403 Forbidden ("Нет доступа к переписке")
+    else Доступ разрешен
+        DB-->>API: Запись найдена
+        API->>DB: SELECT * FROM messages WHERE chat_id = X ORDER BY created_at ASC
+        DB-->>API: История сообщений
+        API-->>Client: 200 OK [Список сообщений]
+        
+        StudentA->>Client: Вводит текст и отправляет сообщение
+        Client->>API: POST /api/messages/chats/{chat_id}/messages {text: "Привет!"}
+        API->>DB: INSERT INTO messages (chat_id, sender_id, text)
+        DB-->>API: Сообщение сохранено
+        API-->>Client: 201 Created (Объект сообщения)
+    end
+```
