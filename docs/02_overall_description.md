@@ -60,7 +60,7 @@ graph LR
     Student --> UC5
     Student --> UC6
     Admin --> UC7
-
+```
 
 2.3 Операционная среда
 
