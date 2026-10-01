@@ -36,6 +36,32 @@
 
 Может блокировать или архивировать нарушающие правила аккаунты.
 
+```mermaid
+graph LR
+    actor Guest as "Гость"
+    actor Student as "Студент"
+    actor Admin as "Модератор"
+
+    subgraph RoomMate_Finder ["Система RoomMate Finder"]
+        UC1["Регистрация и Вход"]
+        UC2["Заполнение / Редактирование анкеты"]
+        UC3["Поиск и фильтрация анкет"]
+        UC4["Добавление в Избранное"]
+        UC5["Отправка личных сообщений"]
+        UC6["Выставление оценки и отзыва"]
+        UC7["Модерация анкет и отзывов"]
+    end
+
+    Guest --> UC1
+    Student --> UC1
+    Student --> UC2
+    Student --> UC3
+    Student --> UC4
+    Student --> UC5
+    Student --> UC6
+    Admin --> UC7
+```
+
 2.3 Операционная среда
 
 Серверная часть (Backend):
