@@ -83,33 +83,33 @@ graph LR
 ```mermaid
 graph TB
     subgraph Users ["Пользователи системы"]
-        Student["🎓 Студент
+        Student["Студент
 
 (Ищет сожителя)"]
-Admin["🛡️ Модератор
+Admin["Модератор
 
 
 (Управляет контентом)"]
 end
 
 subgraph Clients ["Клиентский слой (Frontend)"]
-    WebApp["🌐 Web Application
+    WebApp["Web Application
 
 (React / Vue SPA)"]
-MobileApp["📱 Mobile Application
+MobileApp["Mobile Application
 
 
 (Flutter / React Native)"]
 end
 
 subgraph BackendSystem ["Серверный слой (Backend)"]
-    API["⚡ FastAPI Backend Service
+    API["FastAPI Backend Service
 
 (REST API, Auth, Business Logic)"]
 end
 
 subgraph DataStorage ["Слой хранения данных"]
-    DB[(🗄️ Реляционная БД
+    DB[(Реляционная БД
 
 PostgreSQL / SQLite)]
 end
